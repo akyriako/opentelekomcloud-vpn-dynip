@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	externalIpRawUrl string = "http://myexternalip.com/raw"
+	externalIpRawUrl string = "https://myexternalip.com/raw"
 )
 
 var (
@@ -85,7 +85,12 @@ func getExternalIP() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			klog.Errorln(err)
+		}
+	}(resp.Body)
 
 	ipaddress, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -96,7 +101,7 @@ func getExternalIP() (string, error) {
 }
 
 func updateIPSecConnection(id string, ipaddress string) error {
-	klog.Infoln("updating ipsec connection peer-address...")
+	klog.Infof("updating ipsec connection peer-address to %v...", ipaddress)
 
 	client, err := openstack.NewNetworkV2(provider, opentelekomcloud.EndpointOpts{
 		Region: *region,
@@ -113,7 +118,7 @@ func updateIPSecConnection(id string, ipaddress string) error {
 		return err
 	}
 
-	klog.Infoln("updated ipsec connection peer-address...")
+	klog.Infof("updated ipsec connection peer-address to %v...", ipaddress)
 
 	return nil
 }
