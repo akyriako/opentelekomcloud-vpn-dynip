@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	opentelekomcloud "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
@@ -17,20 +19,22 @@ const (
 
 var (
 	provider          *opentelekomcloud.ProviderClient
-	ipSecConnectionId *string = flag.String("ipsec-connection-id", "", "ipsec s2s connection id")
+	ipSecConnectionId *string = flag.String("ipsec-connection-id", "", "open telekom cloud ipsec s2s connection id")
 	region            *string = flag.String("region", "eu-de", "open telekom cloud region")
 )
 
 func main() {
 	defer exit()
 
-	klog.InitFlags(nil)
-	flag.Parse()
+	flag.Usage = func() {
+		fmt.Printf("Usage of %s:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 
 	klog.Infoln("starting ipsec connection peer-address dynamic update")
 
 	if len(*ipSecConnectionId) < 1 {
-		klog.Fatalln("no valid ipsec connection id")
+		klog.Fatalln("no valid ipsec connection id; use argument \"--help\" to see usage")
 	}
 
 	externalIp, err := getExternalIP()
@@ -58,6 +62,9 @@ func main() {
 }
 
 func init() {
+	klog.InitFlags(nil)
+	flag.Parse()
+
 	klog.Infoln("initializing openstack provider client")
 
 	authOptions, err := openstack.AuthOptionsFromEnv()
