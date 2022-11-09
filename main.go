@@ -31,7 +31,12 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	klog.Infoln("starting ipsec connection peer-address dynamic update")
+	hostname, err := os.Hostname()
+	if err != nil {
+		klog.Fatalln(err)
+	}
+
+	klog.Infof("starting ipsec connection peer-address dynamic update from %s", hostname)
 
 	if len(*ipSecConnectionId) < 1 {
 		klog.Fatalln("no valid ipsec connection id; use argument \"--help\" to see usage")
